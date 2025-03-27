@@ -15,8 +15,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.cust.Entity.Customer;
+import com.cust.Entity.DeletedCustomer;
 import com.cust.Repository.CustomerRepo;
 import com.cust.service.Customerservice;
+
+import ch.qos.logback.core.status.Status;
 
 
 @RestController
@@ -31,6 +34,10 @@ private CustomerRepo cr;
 public ResponseEntity<List<Customer>> fetchAll() {
     System.out.println("Fetching all customers...");
     return ResponseEntity.ok(customerservice.fetchallcust());
+}
+@GetMapping("/api/deleted/customer")
+public ResponseEntity<List<DeletedCustomer>>fetchdeletedcust(){
+	return ResponseEntity.ok(customerservice.fetchdeletedcust());
 }
 
    @GetMapping("/api/customer/{id}")
@@ -55,31 +62,25 @@ public ResponseEntity<List<Customer>> fetchAll() {
        Customer updated = customerservice.Updatecustomer(customer);
        return ResponseEntity.ok(updated);
    }
-   
-  /* @DeleteMapping("/api/customer/{id}")
-   public ResponseEntity<String> deleteCustomer(@PathVariable("id") Integer id) {
-       Customer cust = customerservice.fetchByID(id);
-       if (cust == null) {
-           return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Customer not found");
-       }
-       String deleteMsg = customerservice.deleteCustomer(cust); // Ensure correct method name
-       return ResponseEntity.ok(deleteMsg);
-   }
-   */
-   
-   
-@DeleteMapping("/soft-delete/{id}")
-public ResponseEntity<String> softDeleteCustomer(@PathVariable ("id")int id) {	  
+   @DeleteMapping("/api/customer/softdelete/{id}")
+   public ResponseEntity<Customer>softdelete(@PathVariable ("id") Integer id){
+      
 	   customerservice.softDeleteCustomer(id);
-   return ResponseEntity.ok("Customer moved to DeletedCustomer table.");
-}
-
-@DeleteMapping("/permanent-delete/{id}")
-public ResponseEntity<String> deletePermanently(@PathVariable ("id") int id) {
-	customerservice.deletePermanently(id);
-    return ResponseEntity.ok("Customer deleted permanently.");
-}
-
+	   return new	 ResponseEntity<Customer>(HttpStatus.OK);  
+   }
+   @DeleteMapping("/api/customer/restore/{id}")
+   public ResponseEntity<DeletedCustomer>restoredata(@PathVariable ("id") int id){
+	   customerservice.restoreCustomer(id);
+	   return new ResponseEntity<DeletedCustomer>(HttpStatus.OK);
+   }
+   
+  
+   @DeleteMapping("/api/customer/{id}")
+   public ResponseEntity<DeletedCustomer> deleteCustomer(@PathVariable("id") Integer id) {
+       customerservice.deletePermanently(id);
+       return new ResponseEntity<DeletedCustomer>(HttpStatus.OK);
+   }
+   
    
 
 }
